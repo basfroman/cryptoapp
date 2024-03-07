@@ -87,7 +87,7 @@
             <div class="w-full border-t border-gray-200"></div>
             <button
               @click.stop="removeCoin(c)"
-              class="flex items-center justify-center font-medium w-full bg-gray-100 px-4 py-4 sm:px-6 text-md text-gray-500 hover:text-gray-600 hover:bg-gray-200 hover:opacity-20 transition-all focus:outline-none"
+              class="flex items-center justify-center font-medium w-full bg-gray-100 px-4 py-4 sm:px-6 text-md text-gray-500 hover:text-gray-600 hover:bg-gray-300 hover: transition-all focus:outline-none"
             >
               <svg
                 class="h-5 w-5"
@@ -291,7 +291,7 @@ export default {
         const url = `${constants.URL_PRICE}?fsym=${selectedCoin.name}&tsyms=${this.currency}&api_key=${constants.API_KEY}`;
         const data = await this.getRequest(url);
         var price = data[this.currency];
-
+        console.log(">>> test", this.selectedCoinInterval);
         this.selectedCoinGraph.push(price);
         this.selectedCoinGraph = this.selectedCoinGraph.slice(
           -1 * this.graph_lines
