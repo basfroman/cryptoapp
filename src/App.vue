@@ -143,6 +143,7 @@
 import { API_KEY } from "@/utils/utils.js";
 
 const constants = {
+  // replace API_KEY from https://min-api.cryptocompare.com //
   API_KEY: API_KEY,
 
   URL_COINS: "https://min-api.cryptocompare.com/data/all/coinlist",
