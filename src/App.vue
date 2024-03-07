@@ -156,6 +156,7 @@
 
 <script>
 import { API_KEY } from "@/utils/utils.js";
+import { makeRequest } from "@/api.js";
 
 const constants = {
   // replace API_KEY from https://min-api.cryptocompare.com //
@@ -166,7 +167,7 @@ const constants = {
   URL_PRICE_MULTY: "https://min-api.cryptocompare.com/data/pricemulti",
 
   LOCAL_STORAGE_NAME: "cryptoapp-list",
-  INTERVAL_TIMER: 2000,
+  INTERVAL_TIMER: 3000,
 };
 
 export default {
@@ -183,7 +184,7 @@ export default {
       /* variable for draw the selectedCoin graph */
       selectedCoinGraph: [],
       convertedGrahp: [],
-      graph_lines: 100,
+      graph_lines: 25,
       // interval for selected coin //
       selectedCoinInterval: null,
       // coins list in the app //
@@ -200,11 +201,9 @@ export default {
 
   async created() {
     this.readLocalStorage();
-  },
 
-  async mounted() {
     const url = `${constants.URL_COINS}?api_key=${constants.API_KEY}`;
-    const availableCoins = (await this.getRequest(url)).Data;
+    const availableCoins = (await makeRequest(url)).Data;
     Object.entries(availableCoins).forEach(([key, value]) => {
       this.availableCoins.push({ name: key, fullname: value.FullName });
     });
@@ -252,7 +251,7 @@ export default {
         this.coinName = "";
 
         const url = `${constants.URL_PRICE}?fsym=${newCoin.name}&tsyms=${this.currency}&api_key=${constants.API_KEY}`;
-        const data = await this.getRequest(url);
+        const data = await makeRequest(url);
 
         if (data[this.currency]) {
           const price = data[this.currency];
@@ -289,9 +288,8 @@ export default {
 
       this.selectedCoinInterval = setInterval(async () => {
         const url = `${constants.URL_PRICE}?fsym=${selectedCoin.name}&tsyms=${this.currency}&api_key=${constants.API_KEY}`;
-        const data = await this.getRequest(url);
+        const data = await makeRequest(url);
         var price = data[this.currency];
-        console.log(">>> test", this.selectedCoinInterval);
         this.selectedCoinGraph.push(price);
         this.selectedCoinGraph = this.selectedCoinGraph.slice(
           -1 * this.graph_lines
@@ -324,7 +322,7 @@ export default {
       if (localStorageCoins.length) {
         const coinsNames = localStorageCoins.join(",");
         const url = `${constants.URL_PRICE_MULTY}?fsyms=${coinsNames}&tsyms=${this.currency}&api_key=${constants.API_KEY}`;
-        const data = await this.getRequest(url);
+        const data = await makeRequest(url);
 
         for (const c in data) {
           const coin = { name: c, price: data[c][this.currency] };
