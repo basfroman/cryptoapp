@@ -1,5 +1,7 @@
 <template>
-  <div class="container mx-auto flex flex-col items-center bg-gray-100 p-4">
+  <div
+    class="container shadow mx-auto flex flex-col items-center bg-gray-100 p-4"
+  >
     <div class="container">
       <section>
         <div class="flex">
@@ -9,17 +11,17 @@
             >
             <div class="mt-1 relative rounded-md shadow-md">
               <input
-                v-model="coin"
-                v-on:keydown="processTyping"
-                v-on:keydown.enter.stop="add"
+                v-model="coinName"
+                v-on:keydown.enter.stop="addCoin"
                 type="text"
                 name="wallet"
                 id="wallet"
-                class="p-3 block w-full pr-10 border-gray-300 text-gray-900 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md"
+                class="p-4 block w-full pr-10 border-gray-300 text-gray-900 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md"
                 placeholder="Example DOGE"
               />
             </div>
-            <template v-if="proposedCoins.length">
+
+            <template v-if="proposedCoins.length > 1">
               <div
                 class="flex bg-white shadow-md p-1 rounded-md shadow-md flex-wrap"
               >
@@ -33,13 +35,18 @@
                 </span>
               </div>
             </template>
-            <div v-if="errorMessage.length > 0" class="text-sm text-red-600">
+
+            <div
+              v-if="errorMessage.length > 0"
+              class="text-sm text-red-600 p-3"
+            >
               {{ errorMessage }}
             </div>
           </div>
         </div>
         <button
-          @:click="add()"
+          v-if="!addedLock"
+          @:click="addCoin"
           type="button"
           class="my-4 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
         >
@@ -49,13 +56,13 @@
             width="30"
             height="30"
             viewBox="0 0 24 24"
-            fill="#ffffff"
+            fill="#fff"
           >
             <path
               d="M13 7h-2v4H7v2h4v4h2v-4h4v-2h-4V7zm-1-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
             ></path>
           </svg>
-          Add
+          Add coin
         </button>
       </section>
 
@@ -63,23 +70,23 @@
         <hr class="w-full border-t border-gray-600 my-4" />
         <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
           <div
-            v-for="t in coinsList"
-            :key="t.name"
-            @click="selectedCoin = t"
-            :class="selectedCoin === t ? 'border-4' : ''"
+            v-for="c in coinsList"
+            :key="c.name"
+            @click="selectedCoin = c"
+            :class="selectedCoin === c ? 'border-4' : ''"
             class="bg-white overflow-hidden shadow rounded-lg border-purple-800 border-solid cursor-pointer"
           >
             <div class="px-4 py-5 sm:p-6 text-center">
               <dt class="text-sm font-medium text-gray-500 truncate">
-                {{ t.name }} - {{ currency }}
+                {{ c.name }} - {{ currency }}
               </dt>
               <dd class="mt-1 text-3xl font-semibold text-gray-900">
-                {{ t.price }}
+                {{ c.price }}
               </dd>
             </div>
             <div class="w-full border-t border-gray-200"></div>
             <button
-              @click.stop="removeCoin(t)"
+              @click.stop="removeCoin(c)"
               class="flex items-center justify-center font-medium w-full bg-gray-100 px-4 py-4 sm:px-6 text-md text-gray-500 hover:text-gray-600 hover:bg-gray-200 hover:opacity-20 transition-all focus:outline-none"
             >
               <svg
@@ -105,13 +112,21 @@
           {{ selectedCoin.name }} - {{ currency }}
         </h3>
         <div class="flex items-end border-gray-600 border-b border-l h-64">
-          <div class="bg-purple-800 border w-10 h-24"></div>
-          <div class="bg-purple-800 border w-10 h-32"></div>
-          <div class="bg-purple-800 border w-10 h-48"></div>
-          <div class="bg-purple-800 border w-10 h-16"></div>
-          <div class="bg-purple-500 border w-10 h-48"></div>
+          <div
+            v-for="(p, idx) in convertedGrahp"
+            :key="idx"
+            class="bg-purple-500 border w-10"
+            :style="{
+              height: parseInt(p) + '%',
+              width: 100 / graph_lines + '%',
+            }"
+          ></div>
         </div>
-        <button type="button" class="absolute top-0 right-0">
+        <button
+          @click="stopSubsctibtion"
+          type="button"
+          class="absolute top-0 right-0"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -151,6 +166,7 @@ const constants = {
   URL_PRICE_MULTY: "https://min-api.cryptocompare.com/data/pricemulti",
 
   LOCAL_STORAGE_NAME: "cryptoapp-list",
+  INTERVAL_TIMER: 2000,
 };
 
 export default {
@@ -159,17 +175,23 @@ export default {
   data() {
     return {
       // text in the input
-      coin: "",
-      // selected coin shows on the graph //
+      coinName: "",
+      // lock of adding new coin
+      addedLock: false,
+      // selected coin visually represents on the Graph //
       selectedCoin: null,
+      /* variable for draw the selectedCoin graph */
+      selectedCoinGraph: [],
+      convertedGrahp: [],
+      graph_lines: 100,
+      // interval for selected coin //
+      selectedCoinInterval: null,
       // coins list in the app //
       coinsList: [],
       // list of available coins from the api //
       availableCoins: [],
       // coins for proposed list //
       proposedCoins: [],
-
-      graph: [],
 
       errorMessage: "",
       currency: "USD",
@@ -189,74 +211,134 @@ export default {
   },
 
   methods: {
-    add() {
-      if (this.coin.length) {
+    processTyping() {
+      this.errorMessage = "";
+      this.addedLock = false;
+
+      if (
+        this.coinsList.filter(
+          (c) => c.name.toLowerCase() === this.coinName.toLowerCase()
+        ).length > 0
+      ) {
+        this.errorMessage = "This coin already added.";
+        this.addedLock = true;
+      }
+
+      const proposed = this.availableCoins
+        .filter(
+          (el) =>
+            el.name.toLowerCase().startsWith(this.coinName.toLowerCase()) ||
+            el.fullname.toLowerCase().includes(this.coinName.toLowerCase())
+        )
+        .slice(0, 4);
+      this.proposedCoins = this.coinName.length > 0 ? proposed : [];
+    },
+
+    clickProposedCoin(coin) {
+      this.coinName = coin.name;
+      this.proposedCoins = [];
+    },
+
+    async addCoin() {
+      if (this.addedLock) {
+        return null;
+      }
+      if (this.coinName.length > 0) {
         var newCoin = {
-          name: this.coin,
+          name: this.coinName,
           price: null,
         };
         this.coinsList.push(newCoin);
-        this.coin = "";
+        this.coinName = "";
 
-        const coinInterval = setInterval(async () => {
-          const url = `${constants.URL_PRICE}?fsym=${newCoin.name}&tsyms=${this.currency}&api_key=${constants.API_KEY}`;
-          const data = await this.getRequest(url);
+        const url = `${constants.URL_PRICE}?fsym=${newCoin.name}&tsyms=${this.currency}&api_key=${constants.API_KEY}`;
+        const data = await this.getRequest(url);
 
-          if (data[this.currency]) {
-            const price = data[this.currency];
-            this.coinsList.find((t) => t.name === newCoin.name).price =
-              price > 1 ? price.toFixed(2) : price.toPrecision(2);
-          } else {
-            this.errorMessage = data.Message;
-            this.removeCoin(newCoin);
-            clearInterval(coinInterval);
-          }
-        }, 3000);
+        if (data[this.currency]) {
+          const price = data[this.currency];
+          this.coinsList.find((c) => c.name === newCoin.name).price =
+            price > 1 ? price.toFixed(2) : price.toPrecision(2);
+
+          this.selectedCoinGraph.push(newCoin.price);
+        } else {
+          this.errorMessage = data.Message;
+          this.removeCoin(newCoin);
+        }
 
         this.updateLocalStorage();
       }
     },
 
+    removeCoin(coinToBeDeleted) {
+      clearInterval(coinToBeDeleted.coinInterval);
+
+      this.coinsList = this.coinsList?.filter(
+        (c) => c.name !== coinToBeDeleted.name
+      );
+
+      this.updateLocalStorage();
+
+      if (this.selectedCoin === coinToBeDeleted) {
+        this.stopSubsctibtion();
+      }
+    },
+
+    subscribeToUpdatePrice(selectedCoin) {
+      this.stopSubsctibtion();
+      this.selectedCoin = selectedCoin;
+
+      this.selectedCoinInterval = setInterval(async () => {
+        const url = `${constants.URL_PRICE}?fsym=${selectedCoin.name}&tsyms=${this.currency}&api_key=${constants.API_KEY}`;
+        const data = await this.getRequest(url);
+        var price = data[this.currency];
+
+        this.selectedCoinGraph.push(price);
+        this.selectedCoinGraph = this.selectedCoinGraph.slice(
+          -1 * this.graph_lines
+        );
+        this.convertGraphToPercentage();
+      }, constants.INTERVAL_TIMER);
+    },
+
+    stopSubsctibtion() {
+      clearInterval(this.selectedCoinInterval);
+      this.selectedCoinGraph = [];
+      this.convertedGrahp = [];
+      this.selectedCoin = 0;
+    },
+
+    convertGraphToPercentage() {
+      const minVal = Math.min(...this.selectedCoinGraph);
+      const maxVal = Math.max(...this.selectedCoinGraph);
+
+      this.convertedGrahp = this.selectedCoinGraph.map(
+        (price) => 10 + ((price - minVal) * 90) / (maxVal - minVal + 0.1)
+      );
+    },
+
     async readLocalStorage() {
-      const coinsData = localStorage.getItem(constants.LOCAL_STORAGE_NAME);
-      if (coinsData) {
-        const coinsNames = JSON.parse(coinsData).join(",");
+      const localStorageCoins = JSON.parse(
+        localStorage.getItem(constants.LOCAL_STORAGE_NAME)
+      );
+
+      if (localStorageCoins.length) {
+        const coinsNames = localStorageCoins.join(",");
         const url = `${constants.URL_PRICE_MULTY}?fsyms=${coinsNames}&tsyms=${this.currency}&api_key=${constants.API_KEY}`;
         const data = await this.getRequest(url);
 
-        for (const el in data) {
-          const coin = { name: el, price: data[el][this.currency] };
+        for (const c in data) {
+          const coin = { name: c, price: data[c][this.currency] };
           this.coinsList.push(coin);
         }
       }
     },
 
     updateLocalStorage() {
-      const coinsNames = this.coinsList.map((el) => el.name);
-      console.log(this.coinsList, coinsNames);
+      const coinsNames = this.coinsList.map((c) => c.name);
       localStorage.setItem(
         constants.LOCAL_STORAGE_NAME,
         JSON.stringify(coinsNames)
       );
-    },
-
-    removeCoin(tToRemove) {
-      this.coinsList = this.coinsList.filter((t) => t.name !== tToRemove.name);
-      this.updateLocalStorage();
-    },
-
-    processTyping() {
-      this.errorMessage = "";
-      const coin = this.coin.toUpperCase();
-      const proposed = this.availableCoins
-        .filter((el) => el.name.startsWith(coin) || el.fullname.includes(coin))
-        .slice(0, 4);
-      this.proposedCoins = this.coin.length > 0 ? proposed : [];
-    },
-
-    clickProposedCoin(coin) {
-      this.coin = coin.name;
-      this.proposedCoins = [];
     },
 
     async getRequest(url) {
@@ -274,10 +356,13 @@ export default {
     },
   },
 
-  // watch: {
-  //   coin() {
-  //     this.processTyping();
-  //   },
-  // },
+  watch: {
+    coinName() {
+      this.processTyping();
+    },
+    selectedCoin() {
+      this.subscribeToUpdatePrice(this.selectedCoin);
+    },
+  },
 };
 </script>
