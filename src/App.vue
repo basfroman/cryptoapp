@@ -155,17 +155,9 @@
 </template>
 
 <script>
-import { API_KEY } from "@/utils/utils.js";
-import { makeRequest } from "@/api.js";
+import { getAllCoinsList, getManyCoins, getSingleCoin } from "@/api.js";
 
 const constants = {
-  // replace API_KEY from https://min-api.cryptocompare.com //
-  API_KEY: API_KEY,
-
-  URL_COINS: "https://min-api.cryptocompare.com/data/all/coinlist",
-  URL_PRICE: "https://min-api.cryptocompare.com/data/price",
-  URL_PRICE_MULTY: "https://min-api.cryptocompare.com/data/pricemulti",
-
   LOCAL_STORAGE_NAME: "cryptoapp-list",
   INTERVAL_TIMER: 3000,
 };
@@ -201,9 +193,7 @@ export default {
 
   async created() {
     this.readLocalStorage();
-
-    const url = `${constants.URL_COINS}?api_key=${constants.API_KEY}`;
-    const availableCoins = (await makeRequest(url)).Data;
+    const availableCoins = (await getAllCoinsList()).Data;
     Object.entries(availableCoins).forEach(([key, value]) => {
       this.availableCoins.push({ name: key, fullname: value.FullName });
     });
@@ -250,8 +240,7 @@ export default {
         this.coinsList.push(newCoin);
         this.coinName = "";
 
-        const url = `${constants.URL_PRICE}?fsym=${newCoin.name}&tsyms=${this.currency}&api_key=${constants.API_KEY}`;
-        const data = await makeRequest(url);
+        const data = await getSingleCoin(newCoin.name);
 
         if (data[this.currency]) {
           const price = data[this.currency];
@@ -287,8 +276,7 @@ export default {
       this.selectedCoin = selectedCoin;
 
       this.selectedCoinInterval = setInterval(async () => {
-        const url = `${constants.URL_PRICE}?fsym=${selectedCoin.name}&tsyms=${this.currency}&api_key=${constants.API_KEY}`;
-        const data = await makeRequest(url);
+        const data = await getSingleCoin(selectedCoin.name);
         var price = data[this.currency];
         this.selectedCoinGraph.push(price);
         this.selectedCoinGraph = this.selectedCoinGraph.slice(
@@ -321,8 +309,7 @@ export default {
 
       if (localStorageCoins.length) {
         const coinsNames = localStorageCoins.join(",");
-        const url = `${constants.URL_PRICE_MULTY}?fsyms=${coinsNames}&tsyms=${this.currency}&api_key=${constants.API_KEY}`;
-        const data = await makeRequest(url);
+        const data = await getManyCoins(coinsNames);
 
         for (const c in data) {
           const coin = { name: c, price: data[c][this.currency] };
