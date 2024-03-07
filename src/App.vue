@@ -68,12 +68,12 @@
 
       <template v-if="coinsList.length">
         <hr class="w-full border-t border-gray-600 my-4" />
-        <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
+        <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3 lg:grid-cols-4">
           <div
             v-for="c in coinsList"
             :key="c.name"
             @click="selectedCoin = c"
-            :class="selectedCoin === c ? 'border-4' : ''"
+            :class="selectedCoin === c ? 'bg-slate-300' : ''"
             class="bg-white overflow-hidden shadow rounded-lg border-purple-800 border-solid cursor-pointer"
           >
             <div class="px-4 py-5 sm:p-6 text-center">
@@ -87,21 +87,9 @@
             <div class="w-full border-t border-gray-200"></div>
             <button
               @click.stop="removeCoin(c)"
-              class="flex items-center justify-center font-medium w-full bg-gray-100 px-4 py-4 sm:px-6 text-md text-gray-500 hover:text-gray-600 hover:bg-gray-300 hover: transition-all focus:outline-none"
+              class="flex items-center justify-center font-medium w-full bg-gray-100 px-4 py-4 sm:px-6 text-md text-gray-500 hover:text-gray-600 hover:bg-red-500 hover:text-white hover: transition-all focus:outline-none"
             >
-              <svg
-                class="h-5 w-5"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="#718096"
-                aria-hidden="true"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                  clip-rule="evenodd"
-                ></path></svg
-              >Delete
+              Delete
             </button>
           </div>
         </dl>
@@ -109,13 +97,13 @@
       </template>
       <section v-if="selectedCoin" class="relative">
         <h3 class="text-lg leading-6 font-medium text-gray-900 my-8">
-          {{ selectedCoin.name }} - {{ currency }}
+          Graph: 1 {{ selectedCoin.name }} to {{ currency }}
         </h3>
         <div class="flex items-end border-gray-600 border-b border-l h-64">
           <div
             v-for="(p, idx) in convertedGrahp"
             :key="idx"
-            class="bg-purple-500 border w-10"
+            class="bg-sky-500 border w-10"
             :style="{
               height: parseInt(p) + '%',
               width: 100 / graph_lines + '%',
@@ -123,7 +111,7 @@
           ></div>
         </div>
         <button
-          @click="stopSubsctibtion"
+          @click="selectedCoin = null"
           type="button"
           class="absolute top-0 right-0"
         >
@@ -176,9 +164,10 @@ export default {
       /* variable for draw the selectedCoin graph */
       selectedCoinGraph: [],
       convertedGrahp: [],
+
+      /* how many lines in graph */
       graph_lines: 25,
-      // interval for selected coin //
-      selectedCoinInterval: null,
+
       // coins list in the app //
       coinsList: [],
       // list of available coins from the api //
@@ -221,6 +210,7 @@ export default {
         )
         .slice(0, 4);
       this.proposedCoins = this.coinName.length > 0 ? proposed : [];
+      console.log(">>> this.proposedCoins", this.proposedCoins);
     },
 
     clickProposedCoin(coin) {
@@ -272,25 +262,30 @@ export default {
     },
 
     subscribeToUpdatePrice(selectedCoin) {
-      this.stopSubsctibtion();
-      this.selectedCoin = selectedCoin;
+      const intervalId = setInterval(async () => {
+        if (this.selectedCoin !== selectedCoin) {
+          console.log(
+            ">>> stop interval",
+            intervalId,
+            selectedCoin,
+            this.selectedCoin
+          );
+          clearInterval(intervalId);
+          this.selectedCoinGraph = [];
+          return;
+        }
 
-      this.selectedCoinInterval = setInterval(async () => {
         const data = await getSingleCoin(selectedCoin.name);
-        var price = data[this.currency];
+        const price = data[this.currency];
+
         this.selectedCoinGraph.push(price);
         this.selectedCoinGraph = this.selectedCoinGraph.slice(
           -1 * this.graph_lines
         );
-        this.convertGraphToPercentage();
-      }, constants.INTERVAL_TIMER);
-    },
 
-    stopSubsctibtion() {
-      clearInterval(this.selectedCoinInterval);
-      this.selectedCoinGraph = [];
-      this.convertedGrahp = [];
-      this.selectedCoin = 0;
+        this.convertGraphToPercentage();
+        this.selectedCoin = selectedCoin;
+      }, constants.INTERVAL_TIMER);
     },
 
     convertGraphToPercentage() {
@@ -346,7 +341,11 @@ export default {
       this.processTyping();
     },
     selectedCoin() {
-      this.subscribeToUpdatePrice(this.selectedCoin);
+      this.selectedCoinGraph = [];
+      this.convertedGrahp = [];
+      if (this.selectedCoin) {
+        this.subscribeToUpdatePrice(this.selectedCoin);
+      }
     },
   },
 };

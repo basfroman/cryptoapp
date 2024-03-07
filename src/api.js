@@ -22,7 +22,7 @@ async function getManyCoins(coinNames, currency = DEFAULT_CURRENCY) {
 }
 
 async function getAllCoinsList() {
-  const pathname = `data/all/coinlist&api_key=${API_KEY}`;
+  const pathname = `data/all/coinlist?api_key=${API_KEY}`;
   const url = getUrl(pathname);
   return makeRequest(url);
 }
