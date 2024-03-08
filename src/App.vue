@@ -248,6 +248,9 @@ export default {
       this.coinsList = this.coinsList?.filter(
         (c) => c.name !== coinToBeDeleted.name
       );
+      if (coinToBeDeleted === this.selectedCoin) {
+        this.selectedCoin = null;
+      }
 
       this.updateLocalStorage();
     },
