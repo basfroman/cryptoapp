@@ -22,9 +22,7 @@
             </div>
 
             <template v-if="proposedCoins.length > 1">
-              <div
-                class="flex bg-white shadow-md p-1 rounded-md shadow-md flex-wrap"
-              >
+              <div class="flex bg-white p-1 rounded-md shadow-md flex-wrap">
                 <span
                   v-for="c in proposedCoins"
                   :key="c"
@@ -74,7 +72,7 @@
             :key="c.name"
             @click="selectedCoin = c"
             :class="selectedCoin === c ? 'bg-slate-300' : ''"
-            class="bg-white overflow-hidden shadow rounded-lg border-purple-800 border-solid cursor-pointer"
+            class="bg-white overflow-hidden shadow rounded-lg border-purple-800 border-solid cursor-pointer hover:bg-green-200"
           >
             <div class="px-4 py-5 sm:p-6 text-center">
               <dt class="text-sm font-medium text-gray-500 truncate">
@@ -127,6 +125,7 @@
             viewBox="0 0 511.76 511.76"
             style="enable-background: new 0 0 512 512"
             xml:space="preserve"
+            class="hover:text-red-500"
           >
             <g>
               <path
@@ -157,6 +156,12 @@ export default {
     return {
       // text in the input
       coinName: "",
+      // coins list in the app //
+      coinsList: [],
+      // list of available coins from the api //
+      availableCoins: [],
+      // coins for proposed list //
+      proposedCoins: [],
       // lock of adding new coin
       addedLock: false,
       // selected coin visually represents on the Graph //
@@ -167,13 +172,6 @@ export default {
 
       /* how many lines in graph */
       graph_lines: 25,
-
-      // coins list in the app //
-      coinsList: [],
-      // list of available coins from the api //
-      availableCoins: [],
-      // coins for proposed list //
-      proposedCoins: [],
 
       errorMessage: "",
       currency: "USD",
@@ -210,7 +208,6 @@ export default {
         )
         .slice(0, 4);
       this.proposedCoins = this.coinName.length > 0 ? proposed : [];
-      console.log(">>> this.proposedCoins", this.proposedCoins);
     },
 
     clickProposedCoin(coin) {
@@ -248,28 +245,16 @@ export default {
     },
 
     removeCoin(coinToBeDeleted) {
-      clearInterval(coinToBeDeleted.coinInterval);
-
       this.coinsList = this.coinsList?.filter(
         (c) => c.name !== coinToBeDeleted.name
       );
 
       this.updateLocalStorage();
-
-      if (this.selectedCoin === coinToBeDeleted) {
-        this.stopSubsctibtion();
-      }
     },
 
     subscribeToUpdatePrice(selectedCoin) {
       const intervalId = setInterval(async () => {
         if (this.selectedCoin !== selectedCoin) {
-          console.log(
-            ">>> stop interval",
-            intervalId,
-            selectedCoin,
-            this.selectedCoin
-          );
           clearInterval(intervalId);
           this.selectedCoinGraph = [];
           return;
@@ -340,6 +325,7 @@ export default {
     coinName() {
       this.processTyping();
     },
+
     selectedCoin() {
       this.selectedCoinGraph = [];
       this.convertedGrahp = [];
@@ -347,6 +333,14 @@ export default {
         this.subscribeToUpdatePrice(this.selectedCoin);
       }
     },
+
+    // coinsList: {
+    //   // use deep watcher for control array (coinsList) state.
+    //   deep: true,
+    //   handler() {
+    //     do something
+    //   },
+    // },
   },
 };
 </script>

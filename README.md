@@ -1,4 +1,4 @@
-# cryptoapp
+# CryptoApp
 
 ## Project setup
 ```
