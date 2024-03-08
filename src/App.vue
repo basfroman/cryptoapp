@@ -352,6 +352,7 @@ export default {
       }
     },
 
+    //
     // coinsList: {
     //   // use deep watcher for control array (coinsList) state.
     //   deep: true,
