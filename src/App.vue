@@ -142,7 +142,12 @@
 </template>
 
 <script>
-import { getAllCoinsList, getManyCoins, getSingleCoin } from "@/api.js";
+import {
+  getAllCoinsList,
+  getTopCoins,
+  getManyCoins,
+  getSingleCoin,
+} from "@/api.js";
 
 const constants = {
   LOCAL_STORAGE_NAME: "cryptoapp-list",
@@ -154,6 +159,7 @@ export default {
 
   data() {
     return {
+      topCoins: [],
       // text in the input
       coinName: "",
       // coins list in the app //
@@ -180,10 +186,17 @@ export default {
 
   async created() {
     this.readLocalStorage();
+
     const availableCoins = (await getAllCoinsList()).Data;
     Object.entries(availableCoins).forEach(([key, value]) => {
       this.availableCoins.push({ name: key, fullname: value.FullName });
     });
+    const topCoins = (await getTopCoins()).Data;
+    Object.entries(topCoins).forEach((value) => {
+      this.topCoins.push({ name: value[1].CoinInfo.Name });
+    });
+
+    this.proposedCoins = this.topCoins;
   },
 
   methods: {
@@ -191,6 +204,7 @@ export default {
       this.errorMessage = "";
       this.addedLock = false;
 
+      // check state for hide the button
       if (
         this.coinsList.filter(
           (c) => c.name.toLowerCase() === this.coinName.toLowerCase()
@@ -204,10 +218,10 @@ export default {
         .filter(
           (el) =>
             el.name.toLowerCase().startsWith(this.coinName.toLowerCase()) ||
-            el.fullname.toLowerCase().includes(this.coinName.toLowerCase())
+            el.fullname?.toLowerCase().includes(this.coinName.toLowerCase())
         )
         .slice(0, 4);
-      this.proposedCoins = this.coinName.length > 0 ? proposed : [];
+      this.proposedCoins = this.coinName.length > 0 ? proposed : this.topCoins;
     },
 
     clickProposedCoin(coin) {
@@ -237,6 +251,7 @@ export default {
           this.selectedCoinGraph.push(newCoin.price);
         } else {
           this.errorMessage = data.Message;
+          this.addedLock = true;
           this.removeCoin(newCoin);
         }
 
