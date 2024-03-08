@@ -64,8 +64,9 @@
         </button>
       </section>
 
+      <hr class="w-full border-t border-gray-600 mt-0 mb-4" />
+      <!-- section list of coins -->
       <template v-if="coinsList.length">
-        <hr class="w-full border-t border-gray-600 my-4" />
         <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3 lg:grid-cols-4">
           <div
             v-for="c in coinsList"
@@ -93,6 +94,15 @@
         </dl>
         <hr class="w-full border-t border-gray-600 my-4" />
       </template>
+      <!-- section list of coinst end -->
+
+      <!-- section empty list of coins -->
+      <template v-if="!coinsList.length">
+        <h4>You need to add at least one coin</h4>
+        <hr class="w-full border-t border-gray-600 my-4" />
+      </template>
+      <!-- section empty list of coins end -->
+
       <section v-if="selectedCoin" class="relative">
         <h3 class="text-lg leading-6 font-medium text-gray-900 my-8">
           Graph: 1 {{ selectedCoin.name }} to {{ currency }}
