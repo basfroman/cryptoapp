@@ -1,5 +1,5 @@
 // replace API_KEY with your from https://min-api.cryptocompare.com //
-import { API_KEY } from "./utils/utils";
+import { API_KEY } from "./utils/utils.js";
 
 const BASE_URL = "https://min-api.cryptocompare.com";
 const DEFAULT_CURRENCY = "USD";
