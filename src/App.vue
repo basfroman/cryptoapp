@@ -6,24 +6,28 @@
       <section>
         <div class="flex">
           <div class="max-w-xs">
-            <label for="wallet" class="block text-sm font-medium text-gray-700"
-              >COIN NAME</label
+            <label
+              href="/"
+              for="wallet"
+              class="block font-medium text-gray-700 text-xl"
             >
-            <div class="mt-1 relative rounded-md shadow-md">
+              COINS LIST
+            </label>
+            <div class="mt-1 relative rounded-md shadow-md w-80">
               <input
                 v-model="coinName"
+                @click="proposedCoins = topCoins"
                 v-on:keydown.enter.stop="addCoin"
                 type="text"
-                name="wallet"
-                id="wallet"
                 class="p-4 block w-full pr-10 border-gray-300 text-gray-900 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md"
-                placeholder="Example DOGE"
+                placeholder="Example DOGE, BTC, ETH, etc"
               />
             </div>
-
             <!-- section proposed icons -->
             <template v-if="proposedCoins.length > 1">
-              <div class="flex bg-white p-1 rounded-md shadow-md flex-wrap">
+              <div
+                class="flex bg-white p-1 rounded-md shadow-md flex-wrap absolute w-80 mt-0.5"
+              >
                 <span
                   v-for="c in proposedCoins"
                   :key="c"
@@ -261,7 +265,7 @@ export default {
       this.topCoins.push({ name: value[1].CoinInfo.Name });
     });
 
-    this.proposedCoins = this.topCoins;
+    // this.proposedCoins = this.topCoins;
   },
 
   methods: {
@@ -285,7 +289,7 @@ export default {
           el.name.toLowerCase().startsWith(this.coinName.toLowerCase())
         )
         .slice(0, 4);
-      this.proposedCoins = this.coinName.length > 0 ? proposed : this.topCoins;
+      this.proposedCoins = this.coinName.length > 0 ? proposed : [];
     },
 
     clickProposedCoin(coin) {

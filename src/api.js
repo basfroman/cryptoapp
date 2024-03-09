@@ -3,7 +3,7 @@ import { API_KEY } from "./utils/utils.js";
 
 const BASE_URL = "https://min-api.cryptocompare.com";
 const DEFAULT_CURRENCY = "USD";
-const DEFAULT_AMOINT = 4;
+const DEFAULT_AMOUNT = 5;
 
 const getUrl = (pathname) => new URL(pathname, BASE_URL).toString();
 
@@ -23,7 +23,7 @@ async function getManyCoins(coinNames, currency = DEFAULT_CURRENCY) {
 }
 
 async function getTopCoins(
-  amount = DEFAULT_AMOINT,
+  amount = DEFAULT_AMOUNT,
   currency = DEFAULT_CURRENCY
 ) {
   const pathname = `data/top/totaltoptiervolfull?limit=${amount}&tsym=${currency}`;
