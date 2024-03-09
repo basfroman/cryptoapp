@@ -78,17 +78,17 @@
           />
         </div>
 
-        <div class="flex">
+        <div
+          class="flex"
+          v-if="filteredCoindList.length > filteredPageCoinsAmount"
+        >
           <button
-            v-if="coinsList.length > filteredPageCoinsAmount"
             @click="updatePages(-1)"
             class="ml-4 w-24 my-4 items-center py-2 p-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
           >
             Prev
           </button>
-        </div>
 
-        <div class="flex">
           <select
             v-model="currentPage"
             name="pages"
@@ -99,11 +99,8 @@
               {{ p }}
             </option>
           </select>
-        </div>
 
-        <div class="flex">
           <button
-            v-if="filteredCoindList.length > filteredPageCoinsAmount"
             @click="updatePages(1)"
             class="w-24 my-4 items-center py-2 p-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
           >
