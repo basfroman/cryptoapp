@@ -1,6 +1,6 @@
 <template>
   <div
-    class="container shadow mx-auto flex flex-col items-center bg-gray-100 p-4"
+    class="container shadow mx-auto flex flex-col items-center bg-gradient-to-b from-slate-400 to-gray-200 p-4"
   >
     <div class="container">
       <section>
@@ -9,7 +9,7 @@
             <label
               href="/"
               for="wallet"
-              class="block font-medium text-gray-700 text-xl"
+              class="block font-medium text-gray-600 text-xl pb-3"
             >
               COINS LIST
             </label>
@@ -32,7 +32,7 @@
                   v-for="c in proposedCoins"
                   :key="c"
                   @click="clickProposedCoin(c)"
-                  class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
+                  class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-slate-300 text-gray-800 cursor-pointer"
                 >
                   {{ c.name }}
                 </span>
@@ -42,7 +42,7 @@
 
             <div
               v-if="errorMessage.length > 0"
-              class="text-sm text-red-600 p-3"
+              class="text-xl text-red-500 p-3 shadow-black flex"
             >
               {{ errorMessage }}
             </div>
@@ -52,7 +52,7 @@
           v-if="!addedLock"
           @:click="addCoin"
           type="button"
-          class="my-4 inline-flex items-center py-2 p-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+          class="my-4 inline-flex items-center py-2 p-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-lg text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
         >
           <svg
             class="-ml-0.5 mr-2 h-6 w-6"
@@ -70,7 +70,7 @@
         </button>
       </section>
 
-      <hr class="w-full border-t border-gray-600" />
+      <hr class="w-full border-t border-gray-300" />
 
       <!-- section filter start -->
       <div class="flex" v-if="coinsList.length > filteredPageCoinsAmount">
@@ -88,7 +88,7 @@
         >
           <button
             @click="updatePages(-1)"
-            class="ml-4 w-24 my-4 items-center py-2 p-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+            class="ml-2 w-24 my-4 items-center py-2 p-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-lg text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
           >
             Prev
           </button>
@@ -106,7 +106,7 @@
 
           <button
             @click="updatePages(1)"
-            class="w-24 my-4 items-center py-2 p-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+            class="w-24 my-4 items-center py-2 p-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-lg text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
           >
             Next
           </button>
@@ -121,47 +121,47 @@
             v-for="c in filteredCoindListForShow"
             :key="c.name"
             @click="selectedCoin = c"
-            :class="selectedCoin === c ? 'bg-slate-300' : ''"
-            class="bg-white overflow-hidden shadow rounded-lg border-purple-800 border-solid cursor-pointer hover:bg-green-200"
+            :class="selectedCoin === c ? 'bg-slate-400' : 'bg-white'"
+            class="overflow-hidden shadow rounded-md border-solid cursor-pointer hover:bg-slate-400"
           >
             <div class="px-4 py-5 sm:p-6 text-center">
-              <dt class="text-sm font-medium text-gray-500 truncate">
+              <dt class="text-sm font-medium text-gray-600 truncate">
                 {{ c.name }} - {{ currency }}
               </dt>
-              <dd class="mt-1 text-3xl font-semibold text-gray-900">
-                {{ c.price }}
+              <dd class="mt-1 text-3xl font-semibold text-gray-700">
+                ${{ c.price }}
               </dd>
             </div>
             <div class="w-full border-t border-gray-200"></div>
             <button
               @click.stop="removeCoin(c)"
-              class="flex items-center justify-center font-medium w-full bg-gray-100 px-4 py-4 sm:px-6 text-md text-gray-500 hover:text-gray-600 hover:bg-red-500 hover:text-white hover: transition-all focus:outline-none"
+              class="flex items-center justify-center font-medium w-full bg-gray-100 px-4 py-4 sm:px-6 text-md text-gray-500 hover:bg-red-400 hover:text-white hover: transition-all focus:outline-none"
             >
               Delete
             </button>
           </div>
         </dl>
-        <hr class="w-full border-t border-gray-600 my-4" />
+        <hr class="w-full border-t border-gray-300 my-4" />
       </template>
       <!-- section list of coinst end -->
 
       <!-- section empty list of coins -->
       <template v-if="!coinsList.length">
         <h4>You need to add at least one coin</h4>
-        <hr class="w-full border-t border-gray-600 my-4" />
+        <hr class="w-full border-t border-gray-300 my-4" />
       </template>
       <!-- section empty list of coins end -->
 
       <!-- section graph -->
       <section v-if="selectedCoin" class="relative">
-        <h3 class="text-lg leading-6 font-medium text-gray-900 my-8">
+        <h3 class="text-lg leading-6 font-medium text-gray-500 my-8">
           Graph: 1 {{ selectedCoin.name }} to {{ currency }}
         </h3>
-        <div class="flex items-end border-gray-600 border-b border-l h-64">
+        <div class="flex items-end border-gray-300 border-b border-l h-64">
           <div
             v-for="(p, idx) in convertedGrahp"
             :key="idx"
-            class="bg-sky-500 border w-10"
+            class="bg-gray-400 border border-gray-500 w-10"
             :style="{
               height: parseInt(p) + '%',
               width: 100 / graph_lines + '%',
@@ -279,7 +279,7 @@ export default {
           (c) => c.name.toLowerCase() === this.coinName.toLowerCase()
         ).length > 0
       ) {
-        this.errorMessage = "This coin already added.";
+        this.errorMessage = "This coin already added";
         this.addedLock = true;
       }
 
@@ -363,8 +363,10 @@ export default {
       const minVal = Math.min(...this.selectedCoinGraph);
       const maxVal = Math.max(...this.selectedCoinGraph);
 
-      this.convertedGrahp = this.selectedCoinGraph.map(
-        (price) => 10 + ((price - minVal) * 90) / (maxVal - minVal + 0.1)
+      this.convertedGrahp = this.selectedCoinGraph.map((price) =>
+        minVal === maxVal
+          ? 50
+          : 10 + ((price - minVal) * 90) / (maxVal - minVal + 0.1)
       );
     },
 
