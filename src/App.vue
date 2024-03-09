@@ -21,6 +21,7 @@
               />
             </div>
 
+            <!-- section proposed icons -->
             <template v-if="proposedCoins.length > 1">
               <div class="flex bg-white p-1 rounded-md shadow-md flex-wrap">
                 <span
@@ -33,6 +34,7 @@
                 </span>
               </div>
             </template>
+            <!-- end section proposed icons -->
 
             <div
               v-if="errorMessage.length > 0"
@@ -46,7 +48,7 @@
           v-if="!addedLock"
           @:click="addCoin"
           type="button"
-          class="my-4 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+          class="my-4 inline-flex items-center py-2 p-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
         >
           <svg
             class="-ml-0.5 mr-2 h-6 w-6"
@@ -64,12 +66,58 @@
         </button>
       </section>
 
-      <hr class="w-full border-t border-gray-600 mt-0 mb-4" />
+      <hr class="w-full border-t border-gray-600" />
+
+      <!-- section filter start -->
+      <div class="flex" v-if="coinsList.length > filteredPageCoinsAmount">
+        <div lass="flex">
+          <input
+            v-model="coinsFilter"
+            placeholder="Filter"
+            class="grid-cols-1 mt-4 p-4 block w-full pr-10 border-gray-300 text-gray-900 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md"
+          />
+        </div>
+
+        <div class="flex">
+          <button
+            v-if="coinsList.length > filteredPageCoinsAmount"
+            @click="updatePages(-1)"
+            class="ml-4 w-24 my-4 items-center py-2 p-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+          >
+            Prev
+          </button>
+        </div>
+
+        <div class="flex">
+          <select
+            v-model="currentPage"
+            name="pages"
+            id="id"
+            class="m-4 p-4 rounded-md"
+          >
+            <option v-for="(p, idx) in maxPage + 1" :key="idx" :value="idx">
+              {{ p }}
+            </option>
+          </select>
+        </div>
+
+        <div class="flex">
+          <button
+            v-if="filteredCoindList.length > filteredPageCoinsAmount"
+            @click="updatePages(1)"
+            class="w-24 my-4 items-center py-2 p-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+      <!-- section filter end -->
+
       <!-- section list of coins -->
-      <template v-if="coinsList.length">
+      <template v-if="filteredCoindList.length">
         <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3 lg:grid-cols-4">
           <div
-            v-for="c in coinsList"
+            v-for="c in filteredCoindListForShow"
             :key="c.name"
             @click="selectedCoin = c"
             :class="selectedCoin === c ? 'bg-slate-300' : ''"
@@ -103,6 +151,7 @@
       </template>
       <!-- section empty list of coins end -->
 
+      <!-- section graph -->
       <section v-if="selectedCoin" class="relative">
         <h3 class="text-lg leading-6 font-medium text-gray-900 my-8">
           Graph: 1 {{ selectedCoin.name }} to {{ currency }}
@@ -147,6 +196,7 @@
           </svg>
         </button>
       </section>
+      <!-- section graph end -->
     </div>
   </div>
 </template>
@@ -191,6 +241,14 @@ export default {
 
       errorMessage: "",
       currency: "USD",
+
+      // filter and variables //
+      filteredCoindList: [],
+      filteredCoindListForShow: [],
+      filteredPageCoinsAmount: 8,
+      currentPage: 0,
+      maxPage: 0,
+      coinsFilter: "",
     };
   },
 
@@ -225,10 +283,9 @@ export default {
       }
 
       const proposed = this.availableCoins
-        .filter(
-          (el) =>
-            el.name.toLowerCase().startsWith(this.coinName.toLowerCase()) ||
-            el.fullname?.toLowerCase().includes(this.coinName.toLowerCase())
+        .filter((el) =>
+          // || el.fullname?.toLowerCase().includes(this.coinName.toLowerCase()
+          el.name.toLowerCase().startsWith(this.coinName.toLowerCase())
         )
         .slice(0, 4);
       this.proposedCoins = this.coinName.length > 0 ? proposed : this.topCoins;
@@ -347,6 +404,35 @@ export default {
         });
       return data;
     },
+
+    applyFilter() {
+      if (this.coinsFilter.length > 0) {
+        this.filteredCoindList = this.coinsList.filter((c) =>
+          c.name.toLowerCase().startsWith(this.coinsFilter.toLowerCase())
+        );
+      } else {
+        this.filteredCoindList = this.coinsList;
+      }
+
+      const start = this.currentPage * this.filteredPageCoinsAmount;
+      const stop = (this.currentPage + 1) * this.filteredPageCoinsAmount;
+
+      this.filteredCoindListForShow = this.filteredCoindList.slice(start, stop);
+    },
+
+    updatePages(value) {
+      this.currentPage += value;
+
+      this.maxPage = Math.ceil(
+        this.filteredCoindList.length / this.filteredPageCoinsAmount - 1
+      );
+
+      if (this.currentPage < 0) {
+        this.currentPage = 0;
+      } else if (this.currentPage > this.maxPage) {
+        this.currentPage = this.maxPage;
+      }
+    },
   },
 
   watch: {
@@ -362,14 +448,28 @@ export default {
       }
     },
 
-    //
-    // coinsList: {
-    //   // use deep watcher for control array (coinsList) state.
-    //   deep: true,
-    //   handler() {
-    //     do something
-    //   },
-    // },
+    coinsFilter() {
+      // each time when filter changed reset page to the first one
+      this.currentPage = 0;
+      this.applyFilter();
+      this.updatePages(0);
+    },
+
+    currentPage() {
+      this.applyFilter();
+    },
+
+    coinsList: {
+      // use deep watcher for control array (coinsList) state.
+      deep: true,
+      handler() {
+        // sort list each change
+        this.coinsList.sort((a, b) => a.name.localeCompare(b.name));
+        // re-calculate current page in add/remove coin
+        this.applyFilter();
+        this.updatePages(0);
+      },
+    },
   },
 };
 </script>
