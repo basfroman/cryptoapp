@@ -1,6 +1,10 @@
 // replace API_KEY with your from https://min-api.cryptocompare.com //
 import { API_KEY } from "./utils/utils.js";
 
+// TODO: consider switch to WS from API
+// TODO: if many tabs, ask active tab about ws data (local storage or broatcast chanel. keep in mind Safari
+// doesn't support broatcast chanel.)
+
 const BASE_URL = "https://min-api.cryptocompare.com";
 const DEFAULT_CURRENCY = "USD";
 const DEFAULT_AMOUNT = 5;

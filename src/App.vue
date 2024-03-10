@@ -6,11 +6,7 @@
       <section>
         <div class="flex">
           <div class="max-w-xs">
-            <label
-              href="/"
-              for="wallet"
-              class="block font-medium text-gray-600 text-xl pb-3"
-            >
+            <label class="block font-medium text-gray-600 text-xl pb-3">
               COINS LIST
             </label>
             <div class="mt-1 relative rounded-md shadow-md w-80">
@@ -129,7 +125,7 @@
                 {{ c.name }} - {{ currency }}
               </dt>
               <dd class="mt-1 text-3xl font-semibold text-gray-700">
-                ${{ c.price }}
+                ${{ formatedPrice(c.price) }}
               </dd>
             </div>
             <div class="w-full border-t border-gray-200"></div>
@@ -141,7 +137,6 @@
             </button>
           </div>
         </dl>
-        <hr class="w-full border-t border-gray-300 my-4" />
       </template>
       <!-- section list of coinst end -->
 
@@ -154,6 +149,7 @@
 
       <!-- section graph -->
       <section v-if="selectedCoin" class="relative">
+        <hr class="w-full border-t border-gray-500 my-4" />
         <h3 class="text-lg leading-6 font-medium text-gray-500 my-8">
           Graph: 1 {{ selectedCoin.name }} to {{ currency }}
         </h3>
@@ -171,7 +167,7 @@
         <button
           @click="selectedCoin = null"
           type="button"
-          class="absolute top-0 right-0"
+          class="absolute top-6 right-0"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -236,7 +232,7 @@ export default {
       selectedCoinGraph: [],
       convertedGrahp: [],
 
-      /* how many lines in graph */
+      /* how many columns in graph */
       graph_lines: 25,
 
       errorMessage: "",
@@ -312,8 +308,7 @@ export default {
 
         if (data[this.currency]) {
           const price = data[this.currency];
-          this.coinsList.find((c) => c.name === newCoin.name).price =
-            price > 1 ? price.toFixed(2) : price.toPrecision(2);
+          this.coinsList.find((c) => c.name === newCoin.name).price = price;
 
           this.selectedCoinGraph.push(newCoin.price);
         } else {
@@ -434,6 +429,13 @@ export default {
       } else if (this.currentPage > this.maxPage) {
         this.currentPage = this.maxPage;
       }
+    },
+
+    formatedPrice(price) {
+      if (!price) {
+        return;
+      }
+      return price > 1 ? price.toFixed(2) : price.toPrecision(2);
     },
   },
 
