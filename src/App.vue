@@ -215,12 +215,13 @@ export default {
 
   data() {
     return {
+      // list of top trading coins
       topCoins: [],
       // text in the input
       coinName: "",
       // coins list in the app //
       coinsList: [],
-      // list of available coins from the api //
+      // list of available coins //
       availableCoins: [],
       // coins for proposed list //
       proposedCoins: [],
