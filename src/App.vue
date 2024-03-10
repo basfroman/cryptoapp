@@ -74,7 +74,7 @@
           <input
             v-model="coinsFilter"
             placeholder="Filter"
-            class="grid-cols-1 mt-4 p-4 block w-full pr-10 border-gray-300 text-gray-900 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md"
+            class="mt-4 p-4 block w-full border-gray-300 text-gray-900 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md"
           />
         </div>
 
@@ -259,8 +259,6 @@ export default {
     Object.entries(topCoins).forEach((value) => {
       this.topCoins.push({ name: value[1].CoinInfo.Name });
     });
-
-    // this.proposedCoins = this.topCoins;
   },
 
   methods: {
