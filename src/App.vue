@@ -123,9 +123,9 @@
             :key="c.name"
             @click="selectedCoin = c"
             :class="{
-              'bg-red-500': c.price === undefined,
-              'bg-white': c.price,
-              'bg-slate-400': selectedCoin === c,
+              'bg-white': selectedCoin?.name !== c.name && c.price !== null,
+              'bg-slate-400': selectedCoin?.name === c.name,
+              'bg-red-500': c.price === null,
             }"
             class="overflow-hidden shadow rounded-md border-solid cursor-pointer hover:bg-slate-400"
           >
@@ -211,6 +211,7 @@ import {
   getAllCoinsList,
   getTopCoins,
   subscribeToCoinPrice,
+  terminaterConnection,
   unsubscribeFromCoinPrice,
 } from "@/api.js";
 
@@ -243,7 +244,7 @@ export default {
       convertedGrahp: [],
 
       /* how many columns in graph */
-      graph_lines: 25,
+      graph_lines: 50,
 
       errorMessage: "",
       currency: "USD",
@@ -269,6 +270,10 @@ export default {
     Object.entries(topCoins).forEach((value) => {
       this.topCoins.push({ name: value[1].CoinInfo.Name });
     });
+  },
+
+  unmounted() {
+    terminaterConnection();
   },
 
   methods: {
@@ -334,11 +339,13 @@ export default {
       const minVal = Math.min(...this.selectedCoinGraph);
       const maxVal = Math.max(...this.selectedCoinGraph);
 
-      this.convertedGrahp = this.selectedCoinGraph.map((price) =>
-        minVal === maxVal
-          ? 50
-          : 10 + ((price - minVal) * 90) / (maxVal - minVal + 0.1)
-      );
+      this.convertedGrahp = this.selectedCoinGraph
+        .map((price) =>
+          minVal === maxVal
+            ? 50
+            : 10 + ((price - minVal) * 90) / (maxVal - minVal + 0.1)
+        )
+        .slice(-1 * this.graph_lines);
     },
 
     async readLocalStorage() {
@@ -417,6 +424,7 @@ export default {
 
   watch: {
     coinName() {
+      this.coinName = this.coinName.toUpperCase();
       this.processTyping();
     },
 
