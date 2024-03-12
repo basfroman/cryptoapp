@@ -6,11 +6,15 @@
       <section>
         <div class="flex">
           <div class="max-w-xs">
-            <label class="block font-medium text-gray-600 text-xl pb-3">
+            <label
+              for="coinName"
+              class="block font-medium text-gray-600 text-xl pb-3"
+            >
               COINS LIST
             </label>
             <div class="mt-1 relative rounded-md shadow-md w-80">
               <input
+                id="coinName"
                 v-model="coinName"
                 @click="proposedCoins = topCoins"
                 v-on:keydown.enter.stop="addCoin"
@@ -45,7 +49,7 @@
           </div>
         </div>
         <button
-          v-if="!addedLock"
+          v-if="!hideAddButton"
           @:click="addCoin"
           type="button"
           class="my-4 inline-flex items-center py-2 p-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-lg text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
@@ -72,6 +76,7 @@
       <div class="flex" v-if="coinsList.length > filteredPageCoinsAmount">
         <div lass="flex">
           <input
+            name="filter"
             v-model="coinsFilter"
             placeholder="Filter"
             class="mt-4 p-4 block w-full border-gray-300 text-gray-900 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md"
@@ -117,7 +122,11 @@
             v-for="c in filteredCoindListForShow"
             :key="c.name"
             @click="selectedCoin = c"
-            :class="selectedCoin === c ? 'bg-slate-400' : 'bg-white'"
+            :class="{
+              'bg-red-500': c.price === undefined,
+              'bg-white': c.price,
+              'bg-slate-400': selectedCoin === c,
+            }"
             class="overflow-hidden shadow rounded-md border-solid cursor-pointer hover:bg-slate-400"
           >
             <div class="px-4 py-5 sm:p-6 text-center">
@@ -201,8 +210,8 @@
 import {
   getAllCoinsList,
   getTopCoins,
-  getManyCoins,
-  getSingleCoin,
+  subscribeToCoinPrice,
+  unsubscribeFromCoinPrice,
 } from "@/api.js";
 
 const constants = {
@@ -226,7 +235,7 @@ export default {
       // coins for proposed list //
       proposedCoins: [],
       // lock of adding new coin
-      addedLock: false,
+      hideAddButton: false,
       // selected coin visually represents on the Graph //
       selectedCoin: null,
       /* variable for draw the selectedCoin graph */
@@ -265,7 +274,7 @@ export default {
   methods: {
     processTyping() {
       this.errorMessage = "";
-      this.addedLock = false;
+      this.hideAddButton = false;
 
       // check state for hide the button
       if (
@@ -274,12 +283,11 @@ export default {
         ).length > 0
       ) {
         this.errorMessage = "This coin already added";
-        this.addedLock = true;
+        this.hideAddButton = true;
       }
 
       const proposed = this.availableCoins
         .filter((el) =>
-          // || el.fullname?.toLowerCase().includes(this.coinName.toLowerCase()
           el.name.toLowerCase().startsWith(this.coinName.toLowerCase())
         )
         .slice(0, 4);
@@ -292,7 +300,7 @@ export default {
     },
 
     async addCoin() {
-      if (this.addedLock) {
+      if (this.hideAddButton) {
         return null;
       }
       if (this.coinName.length > 0) {
@@ -303,18 +311,9 @@ export default {
         this.coinsList.push(newCoin);
         this.coinName = "";
 
-        const data = await getSingleCoin(newCoin.name);
-
-        if (data[this.currency]) {
-          const price = data[this.currency];
-          this.coinsList.find((c) => c.name === newCoin.name).price = price;
-
-          this.selectedCoinGraph.push(newCoin.price);
-        } else {
-          this.errorMessage = data.Message;
-          this.addedLock = true;
-          this.removeCoin(newCoin);
-        }
+        subscribeToCoinPrice(newCoin.name, (price) =>
+          this.updateCoinPrice(newCoin.name, price)
+        );
 
         this.updateLocalStorage();
       }
@@ -327,29 +326,8 @@ export default {
       if (coinToBeDeleted === this.selectedCoin) {
         this.selectedCoin = null;
       }
-
+      unsubscribeFromCoinPrice(coinToBeDeleted.name);
       this.updateLocalStorage();
-    },
-
-    subscribeToUpdatePrice(selectedCoin) {
-      const intervalId = setInterval(async () => {
-        if (this.selectedCoin !== selectedCoin) {
-          clearInterval(intervalId);
-          this.selectedCoinGraph = [];
-          return;
-        }
-
-        const data = await getSingleCoin(selectedCoin.name);
-        const price = data[this.currency];
-
-        this.selectedCoinGraph.push(price);
-        this.selectedCoinGraph = this.selectedCoinGraph.slice(
-          -1 * this.graph_lines
-        );
-
-        this.convertGraphToPercentage();
-        this.selectedCoin = selectedCoin;
-      }, constants.INTERVAL_TIMER);
     },
 
     convertGraphToPercentage() {
@@ -369,13 +347,15 @@ export default {
       );
 
       if (localStorageCoins.length) {
-        const coinsNames = localStorageCoins.join(",");
-        const data = await getManyCoins(coinsNames);
-
-        for (const c in data) {
-          const coin = { name: c, price: data[c][this.currency] };
-          this.coinsList.push(coin);
-        }
+        this.coinsList = localStorageCoins.map((coinName) => ({
+          name: coinName,
+          price: null,
+        }));
+        localStorageCoins.forEach((coinName) =>
+          subscribeToCoinPrice(coinName, (price) =>
+            this.updateCoinPrice(coinName, price)
+          )
+        );
       }
     },
 
@@ -387,18 +367,15 @@ export default {
       );
     },
 
-    async getRequest(url) {
-      const data = fetch(url)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .catch((error) => {
-          console.error("Fetch error:", error);
-        });
-      return data;
+    updateCoinPrice(coinName, updatedPrice) {
+      const coin = this.coinsList.find((c) => c.name === coinName);
+      if (coin) {
+        coin.price = updatedPrice;
+
+        if (coin.name === this.selectedCoin?.name) {
+          this.selectedCoinGraph.push(updatedPrice);
+        }
+      }
     },
 
     applyFilter() {
@@ -446,9 +423,6 @@ export default {
     selectedCoin() {
       this.selectedCoinGraph = [];
       this.convertedGrahp = [];
-      if (this.selectedCoin) {
-        this.subscribeToUpdatePrice(this.selectedCoin);
-      }
     },
 
     coinsFilter() {
@@ -460,6 +434,13 @@ export default {
 
     currentPage() {
       this.applyFilter();
+    },
+
+    selectedCoinGraph: {
+      deep: true,
+      handler() {
+        this.convertGraphToPercentage();
+      },
     },
 
     coinsList: {
