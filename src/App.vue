@@ -1,5 +1,6 @@
 <template>
   <div
+    ref="appContainer"
     class="container shadow mx-auto flex flex-col items-center bg-gradient-to-b from-slate-400 to-gray-200 p-4"
   >
     <div class="container">
@@ -274,7 +275,18 @@ export default {
     });
   },
 
+  mounted() {
+    window.addEventListener("resize", () => {
+      this.filteredPageCoinsAmount =
+        this.$refs.appContainer.clientWidth > 768 ? 8 : 6;
+      this.applyFilter();
+      this.updatePages(0);
+    });
+  },
+
   unmounted() {
+    window.removeEventListener("resize");
+
     terminaterConnection();
   },
 
