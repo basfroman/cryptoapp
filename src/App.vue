@@ -212,6 +212,8 @@
 </template>
 
 <script>
+import { getCurrentInstance } from "vue";
+
 import {
   getAllCoinsList,
   getTopCoins,
@@ -219,11 +221,6 @@ import {
   terminaterConnection,
   unsubscribeFromCoinPrice,
 } from "@/api.js";
-
-const constants = {
-  LOCAL_STORAGE_NAME: "cryptoapp-list",
-  INTERVAL_TIMER: 3000,
-};
 
 export default {
   name: "App",
@@ -261,6 +258,8 @@ export default {
       currentPage: 0,
       maxPage: 0,
       coinsFilter: "",
+
+      appName: getCurrentInstance()?.type.__name,
     };
   },
 
@@ -354,9 +353,7 @@ export default {
     },
 
     async readLocalStorage() {
-      const localStorageCoins = JSON.parse(
-        localStorage.getItem(constants.LOCAL_STORAGE_NAME)
-      );
+      const localStorageCoins = JSON.parse(localStorage.getItem(this.appName));
 
       if (localStorageCoins.length) {
         this.coinsList = localStorageCoins.map((coinName) => ({
@@ -373,10 +370,7 @@ export default {
 
     updateLocalStorage() {
       const coinsNames = this.coinsList.map((c) => c.name);
-      localStorage.setItem(
-        constants.LOCAL_STORAGE_NAME,
-        JSON.stringify(coinsNames)
-      );
+      localStorage.setItem(this.appName, JSON.stringify(coinsNames));
     },
 
     updateCoinPrice(coinName, updatedPrice) {

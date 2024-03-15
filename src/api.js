@@ -33,9 +33,18 @@ async function getTopCoins(
   return makeRequest(url);
 }
 
+const broadCastChannel = new BroadcastChannel("cryptoAppBroadcastChannel");
+
 const wsPathname = `v2?api_key=${API_KEY}`;
 const wsUrl = getUrl(wsPathname, BASE_WS_URL);
 const socketClient = new WebSocket(wsUrl);
+
+broadCastChannel.addEventListener("message", (event) => {
+  const [currency, newPrice] = Object.entries(event.data)[0];
+
+  const callBackHandler = coinsCallBackHandlers.get(currency) ?? [];
+  callBackHandler(newPrice);
+});
 
 socketClient.addEventListener("message", (e) => {
   const {
@@ -46,6 +55,10 @@ socketClient.addEventListener("message", (e) => {
   if (type !== AGGREGATE_WS_INDEX || newPrice === undefined) {
     return;
   }
+
+  // send message to broadcast
+  const msg = { [currency]: newPrice };
+  broadCastChannel.postMessage(msg);
 
   const callBackHandler = coinsCallBackHandlers.get(currency) ?? [];
   callBackHandler(newPrice);
@@ -97,7 +110,7 @@ const unsubscribeFromCoinPrice = (coinName) => {
 function terminaterConnection() {
   if (socketClient.readyState !== WebSocket.CLOSED) {
     socketClient.close();
-    console.log("> Connection terminated.");
+    console.info("> Connection terminated.");
   }
 }
 
