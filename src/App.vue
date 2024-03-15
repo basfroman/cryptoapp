@@ -166,7 +166,12 @@
           <div
             v-for="(p, idx) in convertedGrahp"
             :key="idx"
-            class="bg-gray-400 border border-gray-300 w-10"
+            class="border border-gray-300 w-10"
+            :class="{
+              'bg-red-500': idx > 0 && convertedGrahp[idx - 1] >= p,
+              'bg-green-500':
+                idx === 0 || (idx > 0 && convertedGrahp[idx - 1] < p),
+            }"
             :style="{
               height: parseInt(p) + '%',
               width: 100 / graph_lines + '%',
