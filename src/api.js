@@ -3,7 +3,6 @@ import { API_KEY } from "./utils/utils.js";
 
 // TODO: check coin via USD => if not via BTC => if not red card!
 // TODO: Fix graph (resize)
-// TODO: if many tabs, ask active tab about ws data (local storage or broatcast chanel. keep in mind Safari doesn't support broatcast chanel.)
 
 const BASE_API_URL = "https://min-api.cryptocompare.com";
 const BASE_WS_URL = "wss://streamer.cryptocompare.com";

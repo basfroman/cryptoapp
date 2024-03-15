@@ -212,8 +212,6 @@
 </template>
 
 <script>
-import { getCurrentInstance } from "vue";
-
 import {
   getAllCoinsList,
   getTopCoins,
@@ -259,7 +257,7 @@ export default {
       maxPage: 0,
       coinsFilter: "",
 
-      appName: getCurrentInstance()?.type.__name,
+      localStorageName: "cryptoAppLocalStorage",
     };
   },
 
@@ -353,9 +351,11 @@ export default {
     },
 
     async readLocalStorage() {
-      const localStorageCoins = JSON.parse(localStorage.getItem(this.appName));
+      const localStorageCoins = JSON.parse(
+        localStorage.getItem(this.localStorageName)
+      );
 
-      if (localStorageCoins.length) {
+      if (localStorageCoins?.length) {
         this.coinsList = localStorageCoins.map((coinName) => ({
           name: coinName,
           price: null,
@@ -370,7 +370,7 @@ export default {
 
     updateLocalStorage() {
       const coinsNames = this.coinsList.map((c) => c.name);
-      localStorage.setItem(this.appName, JSON.stringify(coinsNames));
+      localStorage.setItem(this.localStorageName, JSON.stringify(coinsNames));
     },
 
     updateCoinPrice(coinName, updatedPrice) {
