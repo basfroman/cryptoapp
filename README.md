@@ -1,14 +1,16 @@
 # CryptoApp
 
+## Demo version of web app
+https://cryptoapp-demo-site.netlify.app
+
 ## Project setup
 ```
 npm install
 ```
 
 ### Update settings
-1. Create `src/utils/utils.js` file.
-2. Get your API_KEY from https://min-api.cryptocompare.com.
-3. Add following code to `utils.js`.
+1. Get your API_KEY from https://min-api.cryptocompare.com.
+2. Add `VUE_APP_API_KEY=YOR_API_KEY` to environment variables or edit `src/utils/utils.js` file with the folowing code.
 
 ```javascript
 const API_KEY =
