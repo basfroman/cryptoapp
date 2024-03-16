@@ -124,11 +124,12 @@
             :key="c.name"
             @click="selectedCoin = c"
             :class="{
-              'bg-white': selectedCoin?.name !== c.name && c.price !== null,
+              'bg-white hover:bg-slate-400':
+                selectedCoin?.name !== c.name && c.price !== null,
               'bg-slate-400': selectedCoin?.name === c.name,
               'bg-red-500': c.price === null,
             }"
-            class="overflow-hidden shadow rounded-md border-solid cursor-pointer hover:bg-slate-400"
+            class="overflow-hidden shadow rounded-md border-solid cursor-pointer"
           >
             <div class="px-4 py-5 sm:p-6 text-center">
               <dt class="text-sm font-medium text-gray-600 truncate">
@@ -158,11 +159,22 @@
       <!-- section empty list of coins end -->
 
       <!-- section graph -->
-      <section v-if="selectedCoin" class="relative">
+      <section v-if="convertPrice(selectedCoin?.price)" class="relative">
         <hr class="w-full border-t border-gray-500 my-4" />
-        <h3 class="text-lg leading-6 font-medium text-gray-500 my-8">
-          Graph: 1 {{ selectedCoin.name }} to {{ currency }}
+        <h3 class="text-lg leading-6 font-medium text-gray-500 my-4">
+          Graph: 1 {{ selectedCoin.name }} to
+          {{ convertPrice(selectedCoin.price) }}
+          {{ currency }}
         </h3>
+        <select v-model="graph_lines" class="p-1 rounded-md">
+          <option>25</option>
+          <option>50</option>
+          <option>75</option>
+          <option>100</option>
+          <option>125</option>
+          <option>{{ max_graph_lines }}</option>
+        </select>
+        <label> lines</label>
         <div class="flex items-end border-gray-400 border-b border-l h-64">
           <div
             v-for="(p, idx) in convertedGrahp"
@@ -246,6 +258,7 @@ export default {
 
       /* how many columns in graph */
       graph_lines: 50,
+      max_graph_lines: 0,
 
       errorMessage: "",
       currency: "USD",
@@ -276,11 +289,14 @@ export default {
   },
 
   mounted() {
+    this.getMaxGraphLines();
+
     window.addEventListener("resize", () => {
       this.filteredPageCoinsAmount =
         this.$refs.appContainer.clientWidth > 768 ? 8 : 6;
       this.applyFilter();
       this.updatePages(0);
+      this.getMaxGraphLines();
     });
   },
 
@@ -429,7 +445,19 @@ export default {
       if (!price) {
         return;
       }
+      return this.convertPrice(price);
+    },
+
+    convertPrice(price) {
+      if (!price) {
+        return;
+      }
+
       return price > 1 ? price.toFixed(2) : price.toPrecision(2);
+    },
+
+    getMaxGraphLines() {
+      this.max_graph_lines = parseInt(this.$refs.appContainer.clientWidth / 3);
     },
   },
 
