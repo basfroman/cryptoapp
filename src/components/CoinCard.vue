@@ -6,7 +6,7 @@
     :class="{
       'bg-white hover:bg-slate-400':
         selectedCoin?.name !== c.name && c.price !== null,
-      'bg-slate-400': selectedCoin?.name === c.name,
+      'bg-slate-400': selectedCoin?.name === c.name && selectedCoin?.price,
       'bg-red-500': c.price === null,
     }"
     class="overflow-hidden shadow rounded-md border-solid cursor-pointer"

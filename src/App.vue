@@ -55,7 +55,7 @@
           type="button"
           class="my-4 inline-flex items-center py-2 p-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-lg text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
         >
-          <AddButton />
+          <add-button />
           Add coin
         </button>
       </section>
@@ -108,7 +108,7 @@
       <!-- section list of coins -->
       <template v-if="filteredCoindList.length">
         <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3 lg:grid-cols-4">
-          <CardCoin
+          <card-coin
             @selectedCoin="handleCoinSelected"
             :filteredCoindListForShow="filteredCoindListForShow"
             :currency="currency"
